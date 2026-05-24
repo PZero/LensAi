@@ -2,14 +2,29 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
+import fs from 'fs';
 
 export default defineConfig(() => {
+  let firebaseConfig = {};
+  const configPath = path.resolve(__dirname, './firebase-applet-config.json');
+  
+  if (fs.existsSync(configPath)) {
+    try {
+      firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    } catch (e) {
+      console.error('Error reading firebase-applet-config.json:', e);
+    }
+  }
+
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
       },
+    },
+    define: {
+      __FIREBASE_CONFIG__: JSON.stringify(firebaseConfig),
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
