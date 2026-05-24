@@ -1,0 +1,6 @@
+{
+  "name": "LensAI",
+  "description": "Scatta foto, ottieni una descrizione minuziosa con Gemini ed esegui lo sviluppo fotografico AI con differenti stili d'autore d'arte, salvando i risultati sul tuo Google Drive.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

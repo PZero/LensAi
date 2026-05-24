@@ -1,0 +1,141 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn();
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Helpers ---
+
+    function isValidUser(data) {
+      return data.userId == request.auth.uid
+        && data.email is string && data.email.size() <= 256
+        && data.name is string && data.name.size() <= 256
+        && (!('geminiApiKey' in data) || (data.geminiApiKey is string && data.geminiApiKey.size() <= 256))
+        && (!('customSystemPrompt' in data) || (data.customSystemPrompt is string && data.customSystemPrompt.size() <= 10000));
+    }
+
+    function isValidPhoto(data) {
+      return data.photoId is string && data.photoId.size() <= 128
+        && data.userId == request.auth.uid
+        && data.originalPhotoUrl is string && data.originalPhotoUrl.size() <= 20000000 // allow high res base64
+        && (!('originalDriveId' in data) || (data.originalDriveId is string && data.originalDriveId.size() <= 128))
+        && (!('developedPhotoUrl' in data) || (data.developedPhotoUrl is string && data.developedPhotoUrl.size() <= 20000000))
+        && (!('developedDriveId' in data) || (data.developedDriveId is string && data.developedDriveId.size() <= 128))
+        && (!('description' in data) || (data.description is string && data.description.size() <= 50000))
+        && data.status is string && (
+             data.status == 'scattata' || 
+             data.status == 'descrivendo' || 
+             data.status == 'descritto' || 
+             data.status == 'sviluppando' || 
+             data.status == 'completato'
+           )
+        && (!('styleName' in data) || (data.styleName is string && data.styleName.size() <= 128))
+        && (!('stylePrompt' in data) || (data.stylePrompt is string && data.stylePrompt.size() <= 2000));
+    }
+
+    function isValidStyle(data) {
+      return data.styleId is string && data.styleId.size() <= 128
+        && data.userId == request.auth.uid
+        && data.name is string && data.name.size() <= 128
+        && data.prompt is string && data.prompt.size() <= 2000;
+    }
+
+    function isValidPresence(data) {
+      return data.userId == request.auth.uid;
+    }
+
+    // --- Match Rules ---
+
+    // 2. Users Collection
+    match /users/{userId} {
+      allow get: if isVerifiedUser() && userId == request.auth.uid;
+      allow create: if isVerifiedUser() && userId == request.auth.uid 
+                    && isValidUser(incoming());
+      allow update: if isVerifiedUser() && userId == request.auth.uid 
+                    && isValidUser(incoming());
+    }
+
+    // 3. Photos Collection
+    match /photos/{photoId} {
+      // Query enforcement: must filter by owner or be owner
+      allow get: if isVerifiedUser() && existing().userId == request.auth.uid;
+      allow list: if isVerifiedUser() && resource.data.userId == request.auth.uid;
+
+      allow create: if isVerifiedUser() 
+                    && isValidId(photoId)
+                    && isValidPhoto(incoming())
+                    && incoming().userId == request.auth.uid;
+
+      allow update: if isVerifiedUser()
+                    && isValidId(photoId)
+                    && existing().userId == request.auth.uid
+                    && incoming().userId == request.auth.uid
+                    && isValidPhoto(incoming());
+
+      allow delete: if isVerifiedUser() && existing().userId == request.auth.uid;
+    }
+
+    // 4. Styles Collection
+    match /styles/{styleId} {
+      allow get: if isVerifiedUser() && (resource.data.userId == request.auth.uid || resource.data.isDefault == true);
+      allow list: if isVerifiedUser() && (resource.data.userId == request.auth.uid || resource.data.isDefault == true);
+
+      allow create: if isVerifiedUser()
+                    && isValidId(styleId)
+                    && isValidStyle(incoming());
+
+      allow update: if isVerifiedUser()
+                    && isValidId(styleId)
+                    && existing().userId == request.auth.uid
+                    && isValidStyle(incoming())
+                    && incoming().userId == request.auth.uid;
+
+      allow delete: if isVerifiedUser() && existing().userId == request.auth.uid;
+    }
+
+    // 5. Presence Collection
+    match /presence/{userId} {
+      // Globally readable to calculate online statistics using count query
+      allow get, list: if isVerifiedUser();
+      
+      allow create: if isVerifiedUser() && userId == request.auth.uid
+                    && isValidPresence(incoming())
+                    && incoming().lastActive == request.time;
+
+      allow update: if isVerifiedUser() && userId == request.auth.uid
+                    && isValidPresence(incoming())
+                    && incoming().lastActive == request.time;
+    }
+
+    // 6. Global stats Collection
+    match /stats/{statId} {
+      allow read: if isVerifiedUser();
+      allow write: if isVerifiedUser() 
+                    && (!('totalPhotos' in incoming()) || incoming().totalPhotos is number);
+    }
+  }
+}

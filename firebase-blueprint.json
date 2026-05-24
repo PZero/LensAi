@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account containing their profile and custom Gemini API key for billing insulation.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Unique identifier matching request.auth.uid" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "name": { "type": "string", "description": "Display name of the user" },
+        "geminiApiKey": { "type": "string", "description": "Optional custom Gemini API key provided by the user" },
+        "customSystemPrompt": { "type": "string", "description": "Optional customized prompt for multimodal image analysis descriptions" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of account creation" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp of last profile update" }
+      },
+      "required": ["userId", "email", "createdAt", "updatedAt"]
+    },
+    "Photo": {
+      "title": "Photo",
+      "description": "A capture and its AI description and developed target photo.",
+      "type": "object",
+      "properties": {
+        "photoId": { "type": "string", "description": "Unique identifier of the photo record" },
+        "userId": { "type": "string", "description": "The creator of the photograph" },
+        "originalPhotoUrl": { "type": "string", "description": "The base64 or Google Drive web URL of the original captured photo" },
+        "originalDriveId": { "type": "string", "description": "Optional Google Drive file ID of the original photo" },
+        "developedPhotoUrl": { "type": "string", "description": "The developed AI photo URL (base64 or Google Drive view URL)" },
+        "developedDriveId": { "type": "string", "description": "Optional Google Drive file ID of the developed photo" },
+        "description": { "type": "string", "description": "Rigorous, detailed textural translation compiled by multimodal Gemini" },
+        "status": { "type": "string", "enum": ["scattata", "descrivendo", "descritto", "sviluppando", "completato"], "description": "Development lifecycle state" },
+        "styleName": { "type": "string", "description": "Name of the applied photographer style or custom style" },
+        "stylePrompt": { "type": "string", "description": "The styling prompt inject to render the developed picture" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when original photo was taken" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when status or description changed" }
+      },
+      "required": ["photoId", "userId", "originalPhotoUrl", "status", "createdAt", "updatedAt"]
+    },
+    "Style": {
+      "title": "Style",
+      "description": "A custom prompt styling defined by the user to shape the developed image.",
+      "type": "object",
+      "properties": {
+        "styleId": { "type": "string", "description": "Unique ID of the custom style option" },
+        "userId": { "type": "string", "description": "Subject user ID" },
+        "name": { "type": "string", "description": "Label of the custom style" },
+        "prompt": { "type": "string", "description": "Prompts to guide Imagen generation" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of style creation" }
+      },
+      "required": ["styleId", "userId", "name", "prompt", "createdAt"]
+    },
+    "Presence": {
+      "title": "Presence",
+      "description": "A heartbeat presence record to track active online users.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Uid of the online user" },
+        "lastActive": { "type": "string", "format": "date-time", "description": "Heartbeat timestamp" }
+      },
+      "required": ["userId", "lastActive"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Users root collection."
+    },
+    "/photos/{photoId}": {
+      "schema": "Photo",
+      "description": "Photos main metadata collection."
+    },
+    "/styles/{styleId}": {
+      "schema": "Style",
+      "description": "Custom developer styles metadata."
+    },
+    "/presence/{userId}": {
+      "schema": "Presence",
+      "description": "Presence heartbeats."
+    }
+  }
+}
