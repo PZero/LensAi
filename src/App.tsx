@@ -1,4 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+// @ts-ignore
+import readmeText from '../README.md?raw';
+// @ts-ignore
+import dettagliText from '../LENS_AI_DETTAGLI.md?raw';
 import { 
   collection, 
   doc, 
@@ -270,6 +275,15 @@ export default function App() {
   const [loadConfigError, setLoadConfigError] = useState<string | null>(null);
   const [isSyncingDrive, setIsSyncingDrive] = useState(false);
   const [appNotification, setAppNotification] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null);
+
+  // GitHub Pages Readme Only view configs
+  const [docTab, setDocTab] = useState<'readme' | 'dettagli'>('readme');
+  const [forceSandbox, setForceSandbox] = useState(false);
+  const isGithubPages = typeof window !== 'undefined' && (
+    window.location.hostname.includes('pzero.github.io') ||
+    window.location.hostname.includes('github.io') ||
+    new URLSearchParams(window.location.search).has('readme')
+  );
 
   // Custom Prompt Description configurations
   const [customSystemPrompt, setCustomSystemPrompt] = useState<string>('');
@@ -2027,6 +2041,147 @@ export default function App() {
       handleFirestoreError(err, OperationType.DELETE, `styles/${styleId}`);
     }
   };
+
+  // Render only the Readme documentation hub when on GitHub Pages
+  if (isGithubPages && !forceSandbox) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
+        {/* Header */}
+        <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3.5">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-gradient-to-tr from-indigo-500 to-rose-500 rounded-xl flex items-center justify-center shadow-md shadow-indigo-900/10">
+                <Camera className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5 font-sans">
+                  LensAI
+                  <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full font-mono font-normal">
+                    Sandbox Multimodale
+                  </span>
+                </h1>
+                <p className="text-[10px] text-zinc-500 font-mono">Sviluppo Multi-Agentico Google AI Studio</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setDocTab('readme');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  docTab === 'readme' 
+                    ? 'bg-zinc-900 text-white border border-zinc-855 shadow-lg shadow-zinc-950/50' 
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                Benvenuto (README)
+              </button>
+              <button
+                onClick={() => {
+                  setDocTab('dettagli');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  docTab === 'dettagli' 
+                    ? 'bg-zinc-900 text-white border border-zinc-855 shadow-lg shadow-zinc-950/50' 
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                Guida Architettura
+              </button>
+              <a 
+                href="https://github.com/pzero/LensAI" 
+                target="_blank" 
+                rel="noreferrer"
+                className="p-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                title="Sorgente GitHub"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </header>
+
+        {/* Hero banner for Multi-agent experience decoration */}
+        <div className="bg-gradient-to-b from-zinc-900/60 to-zinc-950 border-b border-zinc-900/80 py-12 px-4 text-center relative overflow-hidden">
+          <div className="absolute inset-0 opacity-5 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+          <div className="max-w-3xl mx-auto space-y-3 relative z-10">
+            <span className="text-[10px] bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-3 py-1 rounded-full font-mono uppercase tracking-wider font-bold">
+              Esplorazione Tecnologica Attiva
+            </span>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sans">Il Futuro dello Sviluppo Software Collaborativo</h2>
+            <p className="text-xs text-zinc-400 leading-relaxed max-w-xl mx-auto font-sans">
+              Questo portale documentale presenta le caratteristiche di **LensAI**, interamente programmato in modalità autonoma da agenti AI collaborativi sotto la supervisione del Product Owner umano.
+            </p>
+          </div>
+        </div>
+
+        {/* Content Container */}
+        <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-10">
+          <article className="prose prose-invert max-w-none bg-zinc-900/30 border border-zinc-900/60 rounded-2xl p-6 sm:p-10 shadow-2xl backdrop-blur-xs">
+            <ReactMarkdown
+              components={{
+                h1: ({ children }) => <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mt-8 mb-4 border-b border-zinc-850 pb-3 flex items-center gap-2 font-sans">{children}</h1>,
+                h2: ({ children }) => <h2 className="text-lg sm:text-xl font-bold text-zinc-100 mt-8 mb-3 border-l-2 border-indigo-500 pl-3 font-sans">{children}</h2>,
+                h3: ({ children }) => <h3 className="text-base font-semibold text-zinc-200 mt-6 mb-2 font-sans">{children}</h3>,
+                p: ({ children }) => <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed mb-4 font-sans">{children}</p>,
+                li: ({ children }) => <li className="text-xs sm:text-sm text-zinc-400 mb-2 list-disc ml-5 font-sans leading-relaxed">{children}</li>,
+                ul: ({ children }) => <ul className="my-4 space-y-1">{children}</ul>,
+                ol: ({ children }) => <ol className="my-4 space-y-1.5 list-decimal ml-5">{children}</ol>,
+                strong: ({ children }) => <strong className="font-semibold text-zinc-200">{children}</strong>,
+                blockquote: ({ children }) => <blockquote className="border-l-4 border-indigo-500 pl-4 py-1.5 my-4 italic text-zinc-350 bg-zinc-950/30 rounded-r-lg font-sans text-xs sm:text-sm">{children}</blockquote>,
+                code: ({ inline, className, children, ...props }: any) => {
+                  return inline 
+                    ? <code className="bg-zinc-900 border border-zinc-800 text-indigo-400 rounded px-1.5 py-0.5 text-xs font-mono">{children}</code>
+                    : <pre className="bg-zinc-950 border border-zinc-900 rounded-xl p-4 my-4 overflow-x-auto text-[11px] font-mono text-zinc-400 leading-relaxed shadow-inner">{children}</pre>
+                },
+                a: ({ href, children }) => {
+                  return (
+                    <a 
+                      href={href} 
+                      onClick={(e) => {
+                        if (href && (href.includes('LENS_AI_DETTAGLI') || href.includes('dettagli'))) {
+                          e.preventDefault();
+                          setDocTab('dettagli');
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else if (href && (href.includes('README.md') || href === './README.md')) {
+                          e.preventDefault();
+                          setDocTab('readme');
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                      }}
+                      className="text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-4 font-medium"
+                      target={href && href.startsWith('http') ? '_blank' : undefined}
+                      rel={href && href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    >
+                      {children}
+                    </a>
+                  )
+                }
+              }}
+            >
+              {docTab === 'readme' ? readmeText : dettagliText}
+            </ReactMarkdown>
+          </article>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-zinc-900 bg-zinc-950 py-8 px-4 text-center text-xs text-zinc-500 font-mono mt-auto">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 LensAI • Progetto di sperimentazione didattica</p>
+            <button
+              onClick={() => setForceSandbox(true)}
+              className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 hover:text-white border border-zinc-800 hover:border-zinc-700 rounded-lg text-[10px] text-zinc-400 font-mono transition-all cursor-pointer active:scale-95"
+            >
+              Entra nella Sandbox App
+            </button>
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
   // Renders a beautiful public Landing Page if user needs to sign in
   if (needsAuth) {
