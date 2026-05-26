@@ -321,6 +321,7 @@ export default function App() {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [customStyles, setCustomStyles] = useState<CustomStyle[]>([]);
   const [selectedStyles, setSelectedStyles] = useState<(PhotographerStyle | CustomStyle)[]>([PRESET_PHOTOGRAPHERS[0]]);
+  const [loadedSelectedStyleIds, setLoadedSelectedStyleIds] = useState<string[] | null>(null);
   const [dbFirebaseStatus, setDbFirebaseStatus] = useState<'connected' | 'offline' | 'checking'>('checking');
   const [photoIdToDelete, setPhotoIdToDelete] = useState<string | null>(null);
   const [styleIdToDelete, setStyleIdToDelete] = useState<string | null>(null);
@@ -331,10 +332,25 @@ export default function App() {
   const [sharedModalImgSrc, setSharedModalImgSrc] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  const handleToggleStyle = (style: PhotographerStyle | CustomStyle) => {
+  const saveSelectedStyleIdsToCloud = async (stylesList: (PhotographerStyle | CustomStyle)[]) => {
+    if (!user) return;
+    const ids = stylesList.map(s => 'id' in s ? s.id : s.styleId);
+    try {
+      await updateDoc(doc(db, 'users', user.uid), {
+        selectedStyleIds: ids,
+        updatedAt: new Date().toISOString()
+      });
+      setLoadedSelectedStyleIds(ids);
+    } catch (err) {
+      console.warn("Saving selectedStyleIds to cloud failed (offline):", err);
+    }
+  };
+
+  const handleToggleStyle = async (style: PhotographerStyle | CustomStyle) => {
     const isPreset = 'id' in style;
     const styleId = isPreset ? (style as PhotographerStyle).id : (style as CustomStyle).styleId;
     
+    let next: (PhotographerStyle | CustomStyle)[] = [];
     setSelectedStyles(prev => {
       const exists = prev.some(s => {
         const sId = 'id' in s ? s.id : s.styleId;
@@ -342,15 +358,38 @@ export default function App() {
       });
       
       if (exists) {
-        if (prev.length <= 1) return prev; // Keep at least one
-        return prev.filter(s => {
+        if (prev.length <= 1) {
+          next = prev;
+          return prev; // Keep at least one
+        }
+        next = prev.filter(s => {
           const sId = 'id' in s ? s.id : s.styleId;
           return sId !== styleId;
         });
       } else {
-        return [...prev, style];
+        next = [...prev, style];
       }
+      return next;
     });
+
+    // Calculate next list block safely for cloud save
+    const exists = selectedStyles.some(s => {
+      const sId = 'id' in s ? s.id : s.styleId;
+      return sId === styleId;
+    });
+    
+    let nextSavedList: (PhotographerStyle | CustomStyle)[] = [];
+    if (exists) {
+      if (selectedStyles.length <= 1) return;
+      nextSavedList = selectedStyles.filter(s => {
+        const sId = 'id' in s ? s.id : s.styleId;
+        return sId !== styleId;
+      });
+    } else {
+      nextSavedList = [...selectedStyles, style];
+    }
+    
+    await saveSelectedStyleIdsToCloud(nextSavedList);
   };
 
   const getBlendedStyle = (): { name: string; prompt: string; description: string } => {
@@ -584,6 +623,8 @@ export default function App() {
         setPhotos([]);
         setLocalPhotos([]);
         setCustomStyles([]);
+        setLoadedSelectedStyleIds(null);
+        setSelectedStyles([PRESET_PHOTOGRAPHERS[0]]);
         setLoadConfigError(null);
         setSaveKeyError(null);
         setNeedsAuth(true);
@@ -604,6 +645,8 @@ export default function App() {
       setPhotos([]);
       setLocalPhotos([]);
       setCustomStyles([]);
+      setLoadedSelectedStyleIds(null);
+      setSelectedStyles([PRESET_PHOTOGRAPHERS[0]]);
       setLoadConfigError(null);
       setSaveKeyError(null);
       addLog("Disconnesso correttamente. Sessione terminata.", "info");
@@ -683,6 +726,12 @@ export default function App() {
               setCustomSystemPrompt(DEFAULT_SYSTEM_PROMPT);
             }
           }
+
+          if (data.selectedStyleIds && Array.isArray(data.selectedStyleIds)) {
+            setLoadedSelectedStyleIds(data.selectedStyleIds);
+          } else {
+            setLoadedSelectedStyleIds([PRESET_PHOTOGRAPHERS[0].id]);
+          }
         } else {
           addLog("Primo accesso rilevato. Inizializzazione profilo utente nel cloud...", "info");
           // Setup initial user doc in Firestore with timeout
@@ -691,6 +740,7 @@ export default function App() {
             email: user.email || '',
             name: user.displayName || 'Ospite',
             customSystemPrompt: DEFAULT_SYSTEM_PROMPT,
+            selectedStyleIds: [PRESET_PHOTOGRAPHERS[0].id],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           });
@@ -714,6 +764,8 @@ export default function App() {
           } else {
             setCustomSystemPrompt(DEFAULT_SYSTEM_PROMPT);
           }
+
+          setLoadedSelectedStyleIds([PRESET_PHOTOGRAPHERS[0].id]);
         }
       } catch (err: any) {
         // Fallback to local storage copy silently if the connection timed out, preventing distracting console errors/warnings
@@ -734,6 +786,8 @@ export default function App() {
         } else {
           setCustomSystemPrompt(DEFAULT_SYSTEM_PROMPT);
         }
+
+        setLoadedSelectedStyleIds([PRESET_PHOTOGRAPHERS[0].id]);
       }
     };
     loadUserConfig();
@@ -824,6 +878,39 @@ export default function App() {
       unsubStats();
     };
   }, [user]);
+
+  // Reconcile loaded selection IDs with actual style objects (presets + custom)
+  useEffect(() => {
+    if (!loadedSelectedStyleIds) return;
+
+    const resolved: (PhotographerStyle | CustomStyle)[] = [];
+    let hasCustomIds = false;
+
+    loadedSelectedStyleIds.forEach(id => {
+      const preset = PRESET_PHOTOGRAPHERS.find(p => p.id === id);
+      if (preset) {
+        resolved.push(preset);
+      } else {
+        hasCustomIds = true;
+        const custom = customStyles.find(c => c.styleId === id);
+        if (custom) {
+          resolved.push(custom);
+        }
+      }
+    });
+
+    // If we have custom style IDs loaded, but haven't found any of them yet in customStyles
+    // and we are still in checking status, let's wait first before falling back so we don't drop them
+    if (hasCustomIds && resolved.length === 0 && dbFirebaseStatus === 'checking') {
+      return;
+    }
+
+    if (resolved.length > 0) {
+      setSelectedStyles(resolved);
+    } else {
+      setSelectedStyles([PRESET_PHOTOGRAPHERS[0]]);
+    }
+  }, [loadedSelectedStyleIds, customStyles, dbFirebaseStatus]);
 
   const writePresence = async (uid: string) => {
     try {
@@ -2020,10 +2107,20 @@ export default function App() {
         createdAt: new Date().toISOString()
       };
       await setDoc(doc(db, 'styles', styleId), newStyle);
-      setSelectedStyles([newStyle]);
+      
+      // Append the new custom style to selections instead of overwriting previous styles completely
+      const nextSelection = [...selectedStyles.filter(s => {
+        const sId = 'id' in s ? s.id : s.styleId;
+        return sId !== styleId;
+      }), newStyle];
+      
+      setSelectedStyles(nextSelection);
+      await saveSelectedStyleIdsToCloud(nextSelection);
+      
       setNewStyleName('');
       setNewStylePrompt('');
       setShowStyleCreator(false);
+      addLog(`Stile d'autore custom "${newStyle.name}" salvato ed applicato con successo!`, "success");
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, `styles/${styleId}`);
     }
@@ -2033,10 +2130,13 @@ export default function App() {
   const handleDeleteStyle = async (styleId: string) => {
     try {
       await deleteDoc(doc(db, 'styles', styleId));
-      setSelectedStyles(prev => {
-        const remaining = prev.filter(s => !('styleId' in s && s.styleId === styleId));
-        return remaining.length > 0 ? remaining : [PRESET_PHOTOGRAPHERS[0]];
-      });
+      
+      const nextSelection = selectedStyles.filter(s => !('styleId' in s && s.styleId === styleId));
+      const resolvedSelection = nextSelection.length > 0 ? nextSelection : [PRESET_PHOTOGRAPHERS[0]];
+      
+      setSelectedStyles(resolvedSelection);
+      await saveSelectedStyleIdsToCloud(resolvedSelection);
+      addLog("Stile d'autore custom rimosso con successo.", "success");
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, `styles/${styleId}`);
     }

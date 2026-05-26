@@ -35,7 +35,8 @@ service cloud.firestore {
         && data.email is string && data.email.size() <= 256
         && data.name is string && data.name.size() <= 256
         && (!('geminiApiKey' in data) || (data.geminiApiKey is string && data.geminiApiKey.size() <= 256))
-        && (!('customSystemPrompt' in data) || (data.customSystemPrompt is string && data.customSystemPrompt.size() <= 10000));
+        && (!('customSystemPrompt' in data) || (data.customSystemPrompt is string && data.customSystemPrompt.size() <= 10000))
+        && (!('selectedStyleIds' in data) || (data.selectedStyleIds is list && data.selectedStyleIds.size() <= 50));
     }
 
     function isValidPhoto(data) {

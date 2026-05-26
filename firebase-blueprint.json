@@ -10,6 +10,7 @@
         "name": { "type": "string", "description": "Display name of the user" },
         "geminiApiKey": { "type": "string", "description": "Optional custom Gemini API key provided by the user" },
         "customSystemPrompt": { "type": "string", "description": "Optional customized prompt for multimodal image analysis descriptions" },
+        "selectedStyleIds": { "type": "array", "items": { "type": "string" }, "description": "Array of applied preset style IDs or custom style IDs" },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of account creation" },
         "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp of last profile update" }
       },
