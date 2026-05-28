@@ -10,6 +10,8 @@ import aiStudioGuide1 from './assets/images/ai_studio_guide_1_1780001294224.png'
 import aiStudioGuide2 from './assets/images/ai_studio_guide_2_1780001515769.png';
 // @ts-ignore
 import aiStudioGuide3 from './assets/images/ai_studio_guide_3_1780001662530.png';
+// @ts-ignore
+import pwaIosAddHomeGuide from './assets/images/pwa_ios_add_home_guide_1780002080775.png';
 import { 
   collection, 
   doc, 
@@ -2751,13 +2753,14 @@ export default function App() {
                       </p>
                     </div>
 
-                    {/* Image placeholder for iOS sharing */}
-                    <div className="w-full aspect-[16/10] bg-zinc-900/40 border border-zinc-855 rounded-xl flex flex-col items-center justify-center p-4 text-center mt-3">
-                      <div className="w-7 h-7 rounded-full bg-zinc-805 flex items-center justify-center text-zinc-500 mb-1">
-                        <Camera className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">[Immagine Guida: Condividi su iOS Safari]</span>
-                      <span className="text-[9px] text-zinc-650 font-mono italic">(In attesa di caricamento screenshot)</span>
+                    {/* Real guide image for PWA iOS Add to Home */}
+                    <div className="w-full border border-zinc-900/60 rounded-xl overflow-hidden shadow-lg bg-zinc-950 flex flex-col items-center justify-center mt-3">
+                      <img 
+                        src={pwaIosAddHomeGuide} 
+                        alt="Aggiungi LensAI alla schermata Home su iOS Safari" 
+                        className="w-full h-auto object-cover max-h-[380px] rounded-lg" 
+                        referrerPolicy="no-referrer"
+                      />
                     </div>
 
                   </div>
@@ -2791,13 +2794,14 @@ export default function App() {
                       </p>
                     </div>
 
-                    {/* Image placeholder for Android Chrome */}
-                    <div className="w-full aspect-[16/10] bg-zinc-900/40 border border-zinc-855 rounded-xl flex flex-col items-center justify-center p-4 text-center mt-3">
-                      <div className="w-7 h-7 rounded-full bg-zinc-805 flex items-center justify-center text-zinc-500 mb-1">
-                        <Camera className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">[Immagine Guida: Opzioni su Android Chrome]</span>
-                      <span className="text-[9px] text-zinc-650 font-mono italic">(In attesa di caricamento screenshot)</span>
+                    {/* Real guide image for PWA Android Add to Home */}
+                    <div className="w-full border border-zinc-900/60 rounded-xl overflow-hidden shadow-lg bg-zinc-950 flex flex-col items-center justify-center mt-3">
+                      <img 
+                        src={pwaIosAddHomeGuide} 
+                        alt="Aggiungi LensAI alla schermata Home su Android Chrome" 
+                        className="w-full h-auto object-cover max-h-[380px] rounded-lg" 
+                        referrerPolicy="no-referrer"
+                      />
                     </div>
 
                   </div>
