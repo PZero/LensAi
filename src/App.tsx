@@ -4,6 +4,12 @@ import ReactMarkdown from 'react-markdown';
 import readmeText from '../README.md?raw';
 // @ts-ignore
 import dettagliText from '../LENS_AI_DETTAGLI.md?raw';
+// @ts-ignore
+import aiStudioGuide1 from './assets/images/ai_studio_guide_1_1780001294224.png';
+// @ts-ignore
+import aiStudioGuide2 from './assets/images/ai_studio_guide_2_1780001515769.png';
+// @ts-ignore
+import aiStudioGuide3 from './assets/images/ai_studio_guide_3_1780001662530.png';
 import { 
   collection, 
   doc, 
@@ -2588,13 +2594,14 @@ export default function App() {
                       Fai clic per atterrare sul portale ufficiale di Google: <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" className="text-indigo-450 hover:text-indigo-400 underline font-mono inline-flex items-center gap-1">aistudio.google.com <ExternalLink className="w-3 h-3 text-indigo-450 inline" /></a>. Ti chiederà semplicemente un accesso rapido con il tuo account Google normale.
                     </p>
                     
-                    {/* Placeholder image for step 1 */}
-                    <div className="w-full aspect-[16/6] bg-zinc-900/40 border border-zinc-850/60 rounded-xl flex flex-col items-center justify-center p-4 text-center">
-                      <div className="w-7 h-7 rounded-full bg-zinc-805 flex items-center justify-center text-zinc-500 mb-1">
-                        <KeyRound className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">[Immagine Guida: Accesso a Google AI Studio]</span>
-                      <span className="text-[9px] text-zinc-650 font-mono italic">(In attesa di caricamento screenshot)</span>
+                    {/* Real guide image for step 1 */}
+                    <div className="w-full border border-zinc-850/60 rounded-xl overflow-hidden shadow-lg bg-zinc-950 flex flex-col items-center justify-center">
+                      <img 
+                        src={aiStudioGuide1} 
+                        alt="Accedi a Google AI Studio - Schermata Iniziale" 
+                        className="w-full h-auto object-cover max-h-[380px] rounded-lg" 
+                        referrerPolicy="no-referrer"
+                      />
                     </div>
                   </div>
                 </div>
@@ -2605,16 +2612,17 @@ export default function App() {
                   <div className="space-y-3 flex-grow font-sans">
                     <h4 className="text-sm font-bold text-zinc-200 uppercase font-mono tracking-tight">Fai clic su "Get API Key"</h4>
                     <p className="text-zinc-400 text-xs leading-relaxed font-sans">
-                      All'interno del portale di Google, individua l'evidente bottone azzurro in alto a sinistra che recita <strong>"Get API Key"</strong> (Ottieni Chiave API) e premilo con discrezione.
+                      All'interno del portale di Google, se la barra laterale non è già visibile, apri il menu di navigazione in alto a sinistra premendo sull'<strong>icona con le tre lineette orizzontali</strong>. Troverai la voce <strong>"Get API key"</strong> contrassegnata da un'icona a forma di chiave dorata. Cliccaci sopra per accedere al gestore chiavi.
                     </p>
 
-                    {/* Placeholder image for step 2 */}
-                    <div className="w-full aspect-[16/6] bg-zinc-900/40 border border-zinc-850/60 rounded-xl flex flex-col items-center justify-center p-4 text-center">
-                      <div className="w-7 h-7 rounded-full bg-zinc-805 flex items-center justify-center text-zinc-500 mb-1">
-                        <KeyRound className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">[Immagine Guida: Pulsante Get API Key]</span>
-                      <span className="text-[9px] text-zinc-650 font-mono italic">(In attesa di caricamento screenshot)</span>
+                    {/* Real guide image for step 2 */}
+                    <div className="w-full border border-zinc-850/60 rounded-xl overflow-hidden shadow-lg bg-zinc-950 flex flex-col items-center justify-center">
+                      <img 
+                        src={aiStudioGuide2} 
+                        alt="Apri il menu e clicca su Get API Key" 
+                        className="w-full h-auto object-cover max-h-[380px] rounded-lg" 
+                        referrerPolicy="no-referrer"
+                      />
                     </div>
                   </div>
                 </div>
@@ -2623,18 +2631,19 @@ export default function App() {
                 <div className="flex flex-col sm:flex-row gap-5 p-5 bg-zinc-950/60 border border-zinc-900 rounded-2xl align-top">
                   <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-805 flex items-center justify-center font-mono font-bold text-xs shrink-0">3</div>
                   <div className="space-y-3 flex-grow font-sans">
-                    <h4 className="text-sm font-bold text-zinc-200 uppercase font-mono tracking-tight">Genera e Copia la Stringa</h4>
+                    <h4 className="text-sm font-bold text-zinc-200 uppercase font-mono tracking-tight">Crea e Copia la Tua Chiave</h4>
                     <p className="text-zinc-400 text-xs leading-relaxed font-sans font-sans">
-                      Seleziona <strong>"Create API Key in new project"</strong>. Comparirà una lunga sequenza di lettere e numeri segreti (inizia solitamente con <code>AIzaSy...</code>). Clicca su Copia per prelevarla in sicurezza.
+                      Fai clic sul pulsante per generare una nuova chiave API. Ti verrà mostrata una finestra in cui potrai assegnare un nome al token (es. <strong>"AK-lensAI"</strong>) e selezionare un progetto associato (es. <strong>"Gemini Project"</strong>). In seguito, premi sull'evidente pulsante azzurro <strong>"Crea chiave"</strong>. Copia poi la stringa d'accesso generata (inizia di solito con <code>AIzaSy...</code>) cliccando sull'icona di copia.
                     </p>
 
-                    {/* Placeholder image for step 3 */}
-                    <div className="w-full aspect-[16/6] bg-zinc-900/40 border border-zinc-850/60 rounded-xl flex flex-col items-center justify-center p-4 text-center">
-                      <div className="w-7 h-7 rounded-full bg-zinc-805 flex items-center justify-center text-zinc-500 mb-1">
-                        <KeyRound className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">[Immagine Guida: Copia della chiave API]</span>
-                      <span className="text-[9px] text-zinc-650 font-mono italic">(In attesa di caricamento screenshot)</span>
+                    {/* Real guide image for step 3 */}
+                    <div className="w-full border border-zinc-850/60 rounded-xl overflow-hidden shadow-lg bg-zinc-950 flex flex-col items-center justify-center">
+                      <img 
+                        src={aiStudioGuide3} 
+                        alt="Crea una nuova chiave API con il nome desiderato" 
+                        className="w-full h-auto object-cover max-h-[380px] rounded-lg" 
+                        referrerPolicy="no-referrer"
+                      />
                     </div>
                   </div>
                 </div>
